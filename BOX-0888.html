@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdiotBox™ — BOX-0888</title>
+
+    <!-- Ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding-top: 50px;
+            background: #f4f4f4;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        #controllerBox {
+            background: white;
+            width: 300px;
+            max-width: calc(100% - 70px);
+            margin: 0 auto 30px auto;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        #controllerLabel {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        #blockchainLabel {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        button {
+            display: block;
+            width: 250px;
+            max-width: calc(100% - 40px);
+            padding: 20px;
+            margin: 20px auto;
+            font-size: 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+        }
+
+        #authorizeButton {
+            background: #4CAF50;
+        }
+
+        #deauthorizeButton {
+            background: #f44336;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin: 30px auto 0;
+            padding: 0 16px;
+            font-size: 18px;
+            font-weight: bold;
+            max-width: 500px;
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>IdiotBox™</h1>
+
+    <div id="controllerBox">
+        <div id="controllerLabel">IdiotBox Controller</div>
+        <div id="blockchainLabel">BOX-0888 · Blockchain Authorization</div>
+    </div>
+
+    <button id="authorizeButton" onclick="sendAuthorize()">AUTHORIZE</button>
+    <button id="deauthorizeButton" onclick="sendDeauthorize()">DEAUTHORIZE</button>
+
+    <div id="status">Checking IdiotBox connection...</div>
+
+    <script>
+        // ======================================================
+        // BOX-0888 SMART CONTRACT
+        // ======================================================
+
+        const contractAddress =
+            "0x8210e44cFB136B2a0c8B285D3A581b70de58f764";
+
+        const contractABI = [
+            "function authorize() public",
+            "function deauthorize() public"
+        ];
+
+        // ======================================================
+        // STATUS DISPLAY
+        // ======================================================
+
+        const statusElement = document.getElementById("status");
+        const authorizeButton = document.getElementById("authorizeButton");
+        const deauthorizeButton = document.getElementById("deauthorizeButton");
+
+        let physicalState = "unknown";
+        let statusMessageIsTemporary = false;
+
+        function updateStatus(message, temporary = false) {
+            statusElement.innerText = message;
+            statusMessageIsTemporary = temporary;
+        }
+
+        function setButtonsForState(state) {
+            physicalState = state;
+
+            if (state === "on") {
+                authorizeButton.disabled = true;
+                deauthorizeButton.disabled = false;
+            } else if (state === "off") {
+                authorizeButton.disabled = false;
+                deauthorizeButton.disabled = true;
+            } else {
+                authorizeButton.disabled = true;
+                deauthorizeButton.disabled = true;
+            }
+        }
+
+        // ======================================================
+        // GET CONTRACT / CHECK NETWORK
+        // ======================================================
+
+        async function getContract() {
+            if (!window.ethereum) {
+                alert("MetaMask is not installed.");
+                throw new Error("MetaMask is not installed.");
+            }
+
+            updateStatus("Opening MetaMask...", true);
+
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+
+            const network = await provider.getNetwork();
+
+            if (network.chainId !== 11155111n) {
+                updateStatus("Switch MetaMask to the Sepolia Testnet.", true);
+                alert("Please switch MetaMask to the Sepolia Testnet.");
+                throw new Error("Wrong network. Switch to Sepolia.");
+            }
+
+            const signer = await provider.getSigner();
+            return new ethers.Contract(contractAddress, contractABI, signer);
+        }
+
+        // ======================================================
+        // AUTHORIZE
+        // ======================================================
+
+        async function sendAuthorize() {
+            if (physicalState !== "off") {
+                updateStatus("Authorization unavailable: IdiotBox state is not verified OFF.", true);
+                return;
+            }
+
+            try {
+                authorizeButton.disabled = true;
+                deauthorizeButton.disabled = true;
+
+                const contract = await getContract();
+                updateStatus("Approve AUTHORIZE in MetaMask...", true);
+
+                const transaction = await contract.authorize();
+                console.log("AUTHORIZE transaction:", transaction.hash);
+
+                updateStatus("Waiting for blockchain confirmation...", true);
+                await transaction.wait();
+
+                updateStatus("AUTHORIZE confirmed on Sepolia. Waiting for BOX-0888 to update...", true);
+                await checkIdiotBoxStatus();
+            } catch (error) {
+                console.error("AUTHORIZE error:", error);
+                if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+                    updateStatus("Transaction cancelled.", true);
+                } else {
+                    updateStatus("AUTHORIZE transaction failed. Check MetaMask and the contract.", true);
+                }
+                await checkIdiotBoxStatus();
+            }
+        }
+
+        // ======================================================
+        // DEAUTHORIZE
+        // ======================================================
+
+        async function sendDeauthorize() {
+            if (physicalState !== "on") {
+                updateStatus("Deauthorization unavailable: IdiotBox state is not verified ON.", true);
+                return;
+            }
+
+            try {
+                authorizeButton.disabled = true;
+                deauthorizeButton.disabled = true;
+
+                const contract = await getContract();
+                updateStatus("Approve DEAUTHORIZE in MetaMask...", true);
+
+                const transaction = await contract.deauthorize();
+                console.log("DEAUTHORIZE transaction:", transaction.hash);
+
+                updateStatus("Waiting for blockchain confirmation...", true);
+                await transaction.wait();
+
+                updateStatus("DEAUTHORIZE confirmed on Sepolia. Waiting for BOX-0888 to update...", true);
+                await checkIdiotBoxStatus();
+            } catch (error) {
+                console.error("DEAUTHORIZE error:", error);
+                if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+                    updateStatus("Transaction cancelled.", true);
+                } else {
+                    updateStatus("DEAUTHORIZE transaction failed. Check MetaMask and the contract.", true);
+                }
+                await checkIdiotBoxStatus();
+            }
+        }
+
+        // ======================================================
+        // LIVE BOX-0888 CONNECTION / BUTTON STATE
+        // ======================================================
+
+        const STATUS_URL =
+            "https://idiotbox-server.onrender.com/api/box-status/BOX-0888";
+
+        async function checkIdiotBoxStatus() {
+            try {
+                const response = await fetch(STATUS_URL, { cache: "no-store" });
+
+                if (!response.ok) {
+                    throw new Error("Could not retrieve box status.");
+                }
+
+                const data = await response.json();
+
+                // Expected endpoint fields:
+                // data.ready = true when the box is online and verified
+                // data.button1Enabled = true when Button 1 is enabled
+                if (!data.ready || typeof data.button1Enabled !== "boolean") {
+                    setButtonsForState("unknown");
+                    if (!statusMessageIsTemporary) {
+                        updateStatus("IdiotBox Offline — Status Unavailable");
+                    }
+                    return;
+                }
+
+                if (data.button1Enabled) {
+                    setButtonsForState("on");
+                    if (!statusMessageIsTemporary) {
+                        updateStatus("IdiotBox Authorized — Button 1 Enabled");
+                    }
+                } else {
+                    setButtonsForState("off");
+                    if (!statusMessageIsTemporary) {
+                        updateStatus("IdiotBox Deauthorized — Button 1 Disabled");
+                    }
+                }
+            } catch (error) {
+                console.error("Status check failed:", error);
+                setButtonsForState("unknown");
+                if (!statusMessageIsTemporary) {
+                    updateStatus("IdiotBox Offline — Status Unavailable");
+                }
+            }
+        }
+
+        checkIdiotBoxStatus();
+        setInterval(() => {
+            statusMessageIsTemporary = false;
+            checkIdiotBoxStatus();
+        }, 3000);
+    </script>
+</body>
+</html>
