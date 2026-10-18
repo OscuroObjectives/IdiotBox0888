@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IdiotBox BOX-0888 | T-Rex Runner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>IdiotBox BOX-0888</h1>
+    <h2>T-Rex Runner Authorization Challenge</h2>
+    <p>Connect your wallet, then start a game. Score <strong>more than 1,000</strong> to request Button 1 authorization.</p>
+
+    <div class="controls">
+      <button id="connectButton" type="button">Connect MetaMask</button>
+      <button id="playButton" type="button" disabled>Start Game</button>
+    </div>
+
+    <p id="walletAddress" class="info" aria-live="polite">Wallet: Not Connected</p>
+    <p id="status" class="info" aria-live="polite">Status: Connect your wallet to begin.</p>
+    <h2 id="scoreDisplay">Score: 0</h2>
+    <p id="targetDisplay">Target: 1,001 or higher</p>
+
+    <canvas id="gameCanvas" width="900" height="300" aria-label="T-Rex Runner game area"></canvas>
+    <p class="hint">Jump with Space, ↑, or tap the game area on a touchscreen.</p>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
