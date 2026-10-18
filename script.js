@@ -1,5 +1,5 @@
 // IMPORTANT: Replace this placeholder with the deployed BOX-0888 contract address.
-const contractAddress = "REPLACE_WITH_DEPLOYED_BOX_0888_CONTRACT_ADDRESS";
+const contractAddress = "0xE3215339B0c8E1b6365E716d6C8B82cbaE0420e7";
 
 const contractABI = [
   "function startGame()",
