@@ -35,15 +35,15 @@ button:disabled{opacity:.55;cursor:not-allowed}#connectButton{background:#253247
 <div class="small">Contract: <span id="contractAddress"></span></div>
 </main>
 <script>
-const CONTRACT_ADDRESS = "0xa2ECe0Cb48de766901d1646b38743F020a001929";
+const CONTRACT_ADDRESS = "0x0Cc594Cd9a628d4427F9753DC49bba8C0b318dBB";
 const MONAD_CHAIN_ID = 143n;
 const MONADSCAN_TX = "https://monadscan.com/tx/";
 const CONTRACT_ABI = [
  "function lock(string response)",
  "function unlock(string response)",
  "function commandId() view returns (uint256)",
- "event CommandIssued(uint256 indexed commandId, uint8 command, address indexed issuedBy)",
- "event MessageWritten(uint256 indexed commandId, uint8 command, address indexed issuedBy, string message)"
+ "event CommandIssued(uint256 indexed commandId, uint8 command, string commandName, address indexed issuedBy)",
+"event MessageWritten(uint256 indexed commandId, uint8 command, string commandName, address indexed issuedBy, string message)"
 ];
 let busy = false;
 function setStatus(message){document.getElementById("status").textContent=message}
