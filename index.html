@@ -1,97 +1,556 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ATL Blockchain Project | BOX-0888</title>
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
-<style>
-*{box-sizing:border-box}body{font-family:Arial,sans-serif;text-align:center;margin:0;padding:38px 16px;background:#f3f5f7;color:#18202a}
-h1{margin:0 0 8px;font-size:clamp(27px,5vw,36px)}.subtitle{color:#596574;margin:0 0 25px}
-.card{background:#fff;width:100%;max-width:520px;margin:0 auto;padding:24px;border-radius:16px;box-shadow:0 4px 18px #15223814}
-.network{font-size:14px;color:#596574;margin-bottom:22px}label{display:block;text-align:left;font-weight:700;line-height:1.45;margin-bottom:10px}
-textarea{width:100%;min-height:130px;resize:vertical;padding:13px;font:16px/1.5 Arial,sans-serif;border:1px solid #cbd2da;border-radius:10px}
-.count{text-align:right;color:#687383;font-size:12px;margin-top:6px}.privacy{text-align:left;font-size:12px;line-height:1.5;color:#687383;margin:12px 0 18px}
-button{display:block;width:100%;padding:16px;margin:12px 0;border:0;border-radius:10px;font-size:18px;font-weight:700;color:#fff;cursor:pointer}
-button:disabled{opacity:.55;cursor:not-allowed}#connectButton{background:#253247}#lockButton{background:#218447}#unlockButton{background:#c83737}
-#status{margin-top:20px;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}#txLink{display:block;margin-top:10px;overflow-wrap:anywhere}
-.small{font-size:12px;color:#687383;margin-top:18px;overflow-wrap:anywhere}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>IdiotBox™ | BOX-0888</title>
+
+    <!-- Ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 50px 15px 30px;
+            background: #f4f4f4;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        #controllerBox {
+            background: white;
+            width: 300px;
+            max-width: calc(100% - 50px);
+            margin: 0 auto 25px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        #controllerLabel {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        #blockchainLabel {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        #messageBox {
+            width: 300px;
+            max-width: calc(100% - 32px);
+            margin: 0 auto 20px;
+        }
+
+        #messageLabel {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #visitorMessage {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 110px;
+            padding: 12px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            resize: vertical;
+        }
+
+        #characterCount {
+            margin-top: 6px;
+            text-align: right;
+            color: #666;
+            font-size: 12px;
+        }
+
+        button {
+            display: block;
+            width: 250px;
+            max-width: 100%;
+            padding: 20px;
+            margin: 20px auto;
+            font-size: 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        #lockButton {
+            background: #4CAF50;
+            color: white;
+        }
+
+        #unlockButton {
+            background: #f44336;
+            color: white;
+        }
+
+        #resetButton {
+            background: #2196F3;
+            color: white;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin: 30px auto 0;
+            max-width: 500px;
+            font-size: 18px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        #privacyNote {
+            max-width: 450px;
+            margin: 12px auto;
+            color: #666;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+    </style>
 </head>
+
 <body>
-<h1>ATL Blockchain Project</h1>
-<p class="subtitle">Blockchain Command Control · BOX-0888</p>
-<main class="card">
-<div class="network">Network: Monad Mainnet</div>
-<label for="response">Would you use CryptoCurrency in the future?</label>
-<textarea id="response" maxlength="280" placeholder="Enter your response (required)" oninput="updateCount()"></textarea>
-<div class="count" id="count">0 / 280 characters</div>
-<p class="privacy">Your response and selected command will be recorded publicly on the blockchain. Do not enter passwords, financial details, or other private information.</p>
-<button id="connectButton" type="button" onclick="connectWallet()">CONNECT METAMASK</button>
-<button id="lockButton" type="button" onclick="sendCommand('lock')">LOCK</button>
-<button id="unlockButton" type="button" onclick="sendCommand('unlock')">UNLOCK</button>
-<div id="status" role="status" aria-live="polite">Ready. Connect your wallet to begin.</div>
-<a id="txLink" href="#" target="_blank" rel="noopener noreferrer" hidden>View transaction on MonadScan</a>
-<div class="small">Contract: <span id="contractAddress"></span></div>
-</main>
+
+    <h1>IdiotBox™</h1>
+
+    <div id="controllerBox">
+        <div id="controllerLabel">IdiotBox Controller</div>
+
+        <div id="blockchainLabel">
+            Blockchain Command Control · Monad · BOX-0888
+        </div>
+    </div>
+
+    <!-- WRITE WHAT YOU'RE WISHING FOR -->
+
+    <div id="messageBox">
+
+        <label id="messageLabel" for="visitorMessage">
+            Write What You're Wishing For
+        </label>
+
+        <textarea
+            id="visitorMessage"
+            maxlength="280"
+            placeholder="What are you wishing for? (Optional)"
+            oninput="updateCharacterCount()"
+        ></textarea>
+
+        <div id="characterCount">0 / 280 characters</div>
+
+    </div>
+
+    <div id="privacyNote">
+        Your wish will be recorded publicly on the blockchain.
+        Do not enter passwords or private information.
+    </div>
+
+    <button id="connectButton" onclick="connectWallet()">
+        CONNECT METAMASK
+    </button>
+
+    <button id="lockButton" onclick="sendLock()">
+        LOCK
+    </button>
+
+    <button id="unlockButton" onclick="sendUnlock()">
+        UNLOCK
+    </button>
+
+    <button id="resetButton" onclick="sendReset()">
+        RESET_IDIOTBOX_WIFI
+    </button>
+
+    <div id="status">Ready.</div>
+
+    <script>
+
+        // ======================================================
+        // IDIOTBOX SMART CONTRACT
+        // ======================================================
+
+        const contractAddress =
+            "0xE3215339B0c8E1b6365E716d6C8B82cbaE0420e7";
+
+        // Monad Mainnet chain ID
+        const MONAD_CHAIN_ID = 143n;
+
+        const contractABI = [
+            "function lock(string message) public",
+            "function unlock(string message) public",
+            "function resetIdiotBoxWiFi() public",
+            "event AuthorizationCommandIssued(uint256 indexed commandId, uint8 command, address indexed issuedBy)"
+        ];
+
+
+        // ======================================================
+        // STATUS
+        // ======================================================
+
+        function updateStatus(message) {
+            document.getElementById("status").innerText = message;
+        }
+
+
+        // ======================================================
+        // CHARACTER COUNT
+        // ======================================================
+
+        function updateCharacterCount() {
+            const message =
+                document.getElementById("visitorMessage").value;
+
+            document.getElementById("characterCount").innerText =
+                message.length + " / 280 characters";
+        }
+
+
+        // ======================================================
+        // GET WISH
+        // ======================================================
+
+        function getVisitorMessage() {
+            return document
+                .getElementById("visitorMessage")
+                .value
+                .trim();
+        }
+
+
+        // ======================================================
+        // GET CONTRACT
+        // ======================================================
+
+        async function connectWallet() {
+            try {
+                await getContract();
+                updateStatus("✅ Wallet connected to Monad Mainnet.");
+            } catch (error) {
+                console.error("Wallet connection error:", error);
+            }
+        }
+
+        async function getContract() {
+
+            if (!window.ethereum) {
+                alert(
+                    "No compatible wallet detected. Open this page in your wallet's browser or use a browser with a compatible wallet."
+                );
+
+                throw new Error("Wallet not detected.");
+            }
+
+            updateStatus("🦊 Connecting to wallet...");
+
+            const provider =
+                new ethers.BrowserProvider(window.ethereum);
+
+            await provider.send("eth_requestAccounts", []);
+
+            const network = await provider.getNetwork();
+
+            if (network.chainId !== MONAD_CHAIN_ID) {
+
+                updateStatus(
+                    "🔴 Please switch your wallet to Monad Mainnet."
+                );
+
+                alert(
+                    "Please switch your wallet to Monad Mainnet before continuing."
+                );
+
+                throw new Error("Wrong network. Expected Monad Mainnet.");
+            }
+
+            const signer = await provider.getSigner();
+
+            return new ethers.Contract(
+                contractAddress,
+                contractABI,
+                signer
+            );
+        }
+
+
+        // ======================================================
+        // LOCK
+        // ======================================================
+
+        async function sendLock() {
+
+            const button = document.getElementById("lockButton");
+
+            try {
+                button.disabled = true;
+
+                const contract = await getContract();
+                const message = getVisitorMessage();
+
+                updateStatus("🦊 Approve LOCK in your wallet...");
+
+                const transaction = await contract.lock(message);
+
+                console.log("LOCK transaction:", transaction.hash);
+
+                updateStatus("⛓️ Waiting for Monad confirmation...");
+
+                await transaction.wait();
+
+                updateStatus("✅ LOCK confirmed on Monad!");
+
+                document.getElementById("visitorMessage").value = "";
+                updateCharacterCount();
+
+            } catch (error) {
+                console.error("LOCK error:", error);
+
+                if (
+                    error.code === 4001 ||
+                    error.code === "ACTION_REJECTED"
+                ) {
+                    updateStatus("❌ Transaction cancelled");
+                } else {
+                    updateStatus(
+                        "❌ LOCK failed. Check the network, contract address, and wallet."
+                    );
+                }
+
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+
+        // ======================================================
+        // UNLOCK
+        // ======================================================
+
+        async function sendUnlock() {
+
+            const button = document.getElementById("unlockButton");
+
+            try {
+                button.disabled = true;
+
+                const contract = await getContract();
+                const message = getVisitorMessage();
+
+                updateStatus("🦊 Approve UNLOCK in your wallet...");
+
+                const transaction = await contract.unlock(message);
+
+                console.log("UNLOCK transaction:", transaction.hash);
+
+                updateStatus("⛓️ Waiting for Monad confirmation...");
+
+                await transaction.wait();
+
+                updateStatus("✅ UNLOCK confirmed on Monad!");
+
+                document.getElementById("visitorMessage").value = "";
+                updateCharacterCount();
+
+            } catch (error) {
+                console.error("UNLOCK error:", error);
+
+                if (
+                    error.code === 4001 ||
+                    error.code === "ACTION_REJECTED"
+                ) {
+                    updateStatus("❌ Transaction cancelled");
+                } else {
+                    updateStatus(
+                        "❌ UNLOCK failed. Check the network, contract address, and wallet."
+                    );
+                }
+
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+
+        // ======================================================
+        // RESET IDIOTBOX WIFI
+        // ======================================================
+
+        async function sendReset() {
+
+            const confirmed = confirm(
+                "RESET_IDIOTBOX_WIFI will erase the ESP32's saved Wi-Fi credentials and restart the IdiotBox.\n\nContinue?"
+            );
+
+            if (!confirmed) {
+                updateStatus("Reset cancelled.");
+                return;
+            }
+
+            const button = document.getElementById("resetButton");
+
+            try {
+                button.disabled = true;
+
+                const contract = await getContract();
+
+                updateStatus(
+                    "🦊 Approve RESET_IDIOTBOX_WIFI in your wallet..."
+                );
+
+                const transaction =
+                    await contract.resetIdiotBoxWiFi();
+
+                console.log(
+                    "RESET_IDIOTBOX_WIFI transaction:",
+                    transaction.hash
+                );
+
+                updateStatus("⛓️ Waiting for Monad confirmation...");
+
+                await transaction.wait();
+
+                updateStatus(
+                    "✅ RESET_IDIOTBOX_WIFI confirmed on Monad!"
+                );
+
+            } catch (error) {
+                console.error("RESET_IDIOTBOX_WIFI error:", error);
+
+                if (
+                    error.code === 4001 ||
+                    error.code === "ACTION_REJECTED"
+                ) {
+                    updateStatus("❌ Transaction cancelled");
+                } else {
+                    updateStatus(
+                        "❌ RESET failed. Check the network, contract address, and wallet."
+                    );
+                }
+
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+    </script>
+
+
+    <section id="activitySection" style="max-width:1100px;margin:40px auto 0;padding:24px;background:#fff;border-radius:15px;box-shadow:0 2px 8px rgba(0,0,0,.12);text-align:left;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div>
+                <h2 style="margin:0 0 6px;">BOX-0888 Activity History</h2>
+                <div style="font-size:13px;color:#666;">Recent LOCK and UNLOCK events recorded on Monad.</div>
+            </div>
+            <div id="activityUpdated" style="font-size:12px;color:#777;">Loading activity…</div>
+        </div>
+        <div style="overflow-x:auto;margin-top:18px;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:760px;">
+                <thead>
+                    <tr style="background:#f3f4f6;text-align:left;">
+                        <th style="padding:12px;border-bottom:1px solid #ddd;">Date / Time</th>
+                        <th style="padding:12px;border-bottom:1px solid #ddd;">Action</th>
+                        <th style="padding:12px;border-bottom:1px solid #ddd;">Wallet Address</th>
+                        <th style="padding:12px;border-bottom:1px solid #ddd;">Visitor Message</th>
+                        <th style="padding:12px;border-bottom:1px solid #ddd;">Transaction</th>
+                    </tr>
+                </thead>
+                <tbody id="activityRows">
+                    <tr><td colspan="5" style="padding:18px;text-align:center;color:#777;">Loading activity history…</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="activityError" style="display:none;margin-top:12px;color:#a33;font-size:13px;"></div>
+        <div style="margin-top:12px;font-size:12px;color:#777;">History is public and can be viewed without connecting a wallet. Automatically refreshes every 12 seconds.</div>
+    </section>
+
+
 <script>
-const CONTRACT_ADDRESS = "0x0Cc594Cd9a628d4427F9753DC49bba8C0b318dBB";
-const MONAD_CHAIN_ID = 143n;
-const MONADSCAN_TX = "https://monadscan.com/tx/";
-const CONTRACT_ABI = [
- "function lock(string response)",
- "function unlock(string response)",
- "function commandId() view returns (uint256)",
- "event CommandIssued(uint256 indexed commandId, uint8 command, string commandName, address indexed issuedBy)",
-"event MessageWritten(uint256 indexed commandId, uint8 command, string commandName, address indexed issuedBy, string message)"
-];
-let busy = false;
-function setStatus(message){document.getElementById("status").textContent=message}
-function updateCount(){const value=document.getElementById("response").value;document.getElementById("count").textContent=`${value.length} / 280 characters`}
-function setBusy(value){busy=value;["connectButton","lockButton","unlockButton"].forEach(id=>document.getElementById(id).disabled=value)}
-async function getContract(){
- if(!window.ethereum)throw new Error("MetaMask was not detected. Open this page in a browser with MetaMask installed.");
- const provider=new ethers.BrowserProvider(window.ethereum);
- await provider.send("eth_requestAccounts",[]);
- const network=await provider.getNetwork();
- if(network.chainId!==MONAD_CHAIN_ID)throw new Error("Please switch MetaMask to Monad Mainnet (chain ID 143) and try again.");
- const signer=await provider.getSigner();
- return {contract:new ethers.Contract(CONTRACT_ADDRESS,CONTRACT_ABI,signer),signer};
-}
-async function connectWallet(){
- if(busy)return;setBusy(true);
- try{const {signer}=await getContract();setStatus(`Wallet connected on Monad Mainnet.\nAccount: ${await signer.getAddress()}`)}
- catch(error){console.error(error);setStatus(error.code===4001?"Wallet connection was cancelled.":(error.message||"Could not connect wallet."))}
- finally{setBusy(false)}
-}
-async function sendCommand(command){
- if(busy)return;
- const response=document.getElementById("response").value.trim();
- if(!response){setStatus("Please enter your response to “Would you use CryptoCurrency in the future?” before submitting.");document.getElementById("response").focus();return}
- if(response.length>280){setStatus("Please keep your response to 280 characters or fewer.");return}
- setBusy(true);const txLink=document.getElementById("txLink");txLink.hidden=true;txLink.removeAttribute("href");
- try{
-  const {contract}=await getContract();
-  setStatus(`Please review and approve the ${command.toUpperCase()} transaction in MetaMask.`);
-  const tx=command==="lock"?await contract.lock(response):await contract.unlock(response);
-  txLink.href=MONADSCAN_TX+tx.hash;txLink.textContent="View pending transaction on MonadScan";txLink.hidden=false;
-  setStatus(`${command.toUpperCase()} transaction submitted.\nTransaction hash: ${tx.hash}\nWaiting for Monad confirmation…`);
-  const receipt=await tx.wait();
-  if(!receipt||receipt.status!==1)throw new Error("The transaction was not confirmed successfully.");
-  txLink.href=MONADSCAN_TX+tx.hash;txLink.textContent="View confirmed transaction and event logs on MonadScan";
-  setStatus(`✅ ${command.toUpperCase()} confirmed on Monad Mainnet.\nYour response and command were submitted in the same transaction.\nTransaction hash: ${tx.hash}`);
-  document.getElementById("response").value="";updateCount();
- }catch(error){
-  console.error(`${command} transaction error:`,error);
-  if(error.code===4001||error.code==="ACTION_REJECTED")setStatus("Transaction cancelled in MetaMask.");
-  else setStatus(`❌ ${error.shortMessage||error.reason||error.message||"Transaction failed."}\nCheck that the contract address is correct, the contract has the expected lock/unlock functions, and MetaMask is on Monad Mainnet.`);
- }finally{setBusy(false)}
-}
-document.getElementById("contractAddress").textContent=CONTRACT_ADDRESS;
-if(window.ethereum){
- window.ethereum.on?.("chainChanged",()=>setStatus("Wallet network changed. Please confirm MetaMask is set to Monad Mainnet."));
- window.ethereum.on?.("accountsChanged",()=>setStatus("Wallet account changed. Reconnect if needed."));
-}
+(() => {
+    const ACTIVITY_URL = "https://idiotbox-server.onrender.com/api/box-activity/BOX-0888";
+    const rows = document.getElementById("activityRows");
+    const updated = document.getElementById("activityUpdated");
+    const errorBox = document.getElementById("activityError");
+
+    function cell(text) {
+        const td = document.createElement("td");
+        td.style.cssText = "padding:12px;border-bottom:1px solid #eee;vertical-align:top;";
+        td.textContent = text || "—";
+        return td;
+    }
+
+    async function loadActivity() {
+        try {
+            const response = await fetch(ACTIVITY_URL, { cache: "no-store" });
+            const data = await response.json();
+            if (!response.ok || !data.ok) throw new Error(data.error || "Activity service unavailable.");
+
+            rows.replaceChildren();
+            if (!Array.isArray(data.events) || data.events.length === 0) {
+                const tr = document.createElement("tr");
+                const td = cell("No LOCK or UNLOCK activity found yet.");
+                td.colSpan = 5; td.style.textAlign = "center";
+                tr.appendChild(td); rows.appendChild(tr);
+            } else {
+                data.events.slice(0, 30).forEach(event => {
+                    const tr = document.createElement("tr");
+                    const date = event.timestamp
+                        ? new Date(event.timestamp * 1000).toLocaleString()
+                        : (event.dateTime || "—");
+                    tr.appendChild(cell(date));
+                    const action = cell(event.commandName || event.action || "—");
+                    action.style.fontWeight = "bold";
+                    action.style.color = (event.commandName || event.action) === "LOCK" ? "#b42318" : "#067647";
+                    tr.appendChild(action);
+                    tr.appendChild(cell(event.issuedBy || "—"));
+                    tr.appendChild(cell(event.message || ""));
+                    const tx = document.createElement("td");
+                    tx.style.cssText = "padding:12px;border-bottom:1px solid #eee;vertical-align:top;";
+                    if (event.transactionHash) {
+                        const a = document.createElement("a");
+                        a.href = "https://monadscan.com/tx/" + encodeURIComponent(event.transactionHash);
+                        a.target = "_blank"; a.rel = "noopener noreferrer";
+                        a.textContent = event.transactionHash.slice(0, 10) + "…" + event.transactionHash.slice(-8);
+                        tx.appendChild(a);
+                    } else tx.textContent = "—";
+                    tr.appendChild(tx);
+                    rows.appendChild(tr);
+                });
+            }
+            errorBox.style.display = "none";
+            updated.textContent = "Updated " + new Date().toLocaleTimeString();
+        } catch (err) {
+            console.error("BOX-0888 activity error:", err);
+            errorBox.textContent = "Could not load activity history: " + err.message;
+            errorBox.style.display = "block";
+            updated.textContent = "Refresh failed";
+            if (!rows.children.length) {
+                rows.replaceChildren();
+                const tr = document.createElement("tr");
+                const td = cell("Activity history is temporarily unavailable.");
+                td.colSpan = 5; td.style.textAlign = "center";
+                tr.appendChild(td); rows.appendChild(tr);
+            }
+        }
+    }
+    loadActivity();
+    setInterval(loadActivity, 12000);
+})();
 </script>
 </body>
 </html>
